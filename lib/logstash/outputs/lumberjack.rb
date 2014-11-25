@@ -21,7 +21,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
     require 'lumberjack/client'
     connect
 
-    @codec.on_event do |payload|
+    @codec.on_event do |event, payload|
       begin
         @client.write({ 'line' => payload })
       rescue Exception => e
