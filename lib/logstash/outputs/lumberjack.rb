@@ -2,7 +2,6 @@
 class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
 
   config_name "lumberjack"
-  milestone 1
 
   # list of addresses lumberjack can send to
   config :hosts, :validate => :array, :required => true
