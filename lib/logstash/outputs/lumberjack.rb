@@ -1,5 +1,10 @@
 # encoding: utf-8
+require "logstash/outputs/base"
+require "stud/buffer"
+require "thread"
+
 class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
+  include Stud::Buffer
 
   config_name "lumberjack"
 
@@ -13,22 +18,41 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   config :ssl_certificate, :validate => :path, :required => true
 
   # window size
-  config :window_size, :validate => :number, :default => 1024
+  config :window_size, :validate => :number, :default => 1024, :deprecated => "Use `flush_size`"
+  
+  # To make efficient calls to the lumberjack output we are buffering events locally. 
+  # if the number of events exceed the number the declared `flush_size` we will 
+  # send them to the logstash server.
+  config :flush_size, :validate => :number, :default => 1024
+
+  # The amount of time since last flush before a flush is forced.
+  #
+  # This setting helps ensure slow event rates don't get stuck in Logstash.
+  # For example, if your `flush_size` is 100, and you have received 10 events,
+  # and it has been more than `idle_flush_time` seconds since the last flush,
+  # Logstash will flush those 10 events automatically.
+  #
+  # This helps keep both fast and slow log streams moving along in
+  # near-real-time.
+  config :idle_flush_time, :validate => :number, :default => 1
+
+  RECONNECT_BACKOFF_SLEEP = 0.5
 
   public
   def register
     require 'lumberjack/client'
+
+    buffer_initialize(
+      :max_items => max_items,
+      :max_interval => @idle_flush_time,
+      :logger => @logger
+    )
+
     connect
 
     @codec.on_event do |event, payload|
-      begin
-        @client.write({ 'line' => payload })
-      rescue Exception => e
-        @logger.error("Client write error, trying connect", :e => e, :backtrace => e.backtrace)
-        connect
-        retry
-      end # begin
-    end # @codec
+      buffer_receive({ "line" => payload })
+    end
   end # def register
 
   public
@@ -41,7 +65,23 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
     @codec.encode(event)
   end # def receive
 
+  def flush(events, teardown = false)
+    begin
+      @logger.info("Sending events to lumberjack", :size => events.size)
+      @client.write(events)
+    rescue Exception => e
+      @logger.error("Client write error, trying connect", :e => e, :backtrace => e.backtrace)
+      sleep(RECONNECT_BACKOFF_SLEEP)
+      connect
+      retry
+    end # begin
+  end
+  
   private 
+  def max_items
+    @window_size || @flush_size
+  end
+
   def connect
     require 'resolv'
     @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port, 
