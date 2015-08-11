@@ -13,7 +13,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   config :ssl_certificate, :validate => :path, :required => true
 
   # window size
-  config :window_size, :validate => :number, :default => 5000
+  config :window_size, :validate => :number, :default => 1024
 
   public
   def register
