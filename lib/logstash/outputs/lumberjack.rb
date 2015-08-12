@@ -18,7 +18,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   config :ssl_certificate, :validate => :path, :required => true
 
   # window size
-  config :window_size, :validate => :number, :default => 1024, :deprecated => "Use `flush_size`"
+  config :window_size, :validate => :number, :deprecated => "Use `flush_size`", :require => false
   
   # To make efficient calls to the lumberjack output we are buffering events locally. 
   # if the number of events exceed the number the declared `flush_size` we will 
