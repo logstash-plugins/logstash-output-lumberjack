@@ -29,7 +29,7 @@ describe "Sending events" do
       "flush_size" => batch_size
     }
   }
-  let(:input) { LogStash::Outputs::Lumberjack.new(client_options) }
+  let(:output) { LogStash::Outputs::Lumberjack.new(client_options) }
 
   context "when the server closes the connection" do
     before do
@@ -56,7 +56,7 @@ describe "Sending events" do
         end
       end
 
-      input.register
+      output.register
     end
 
     after do
@@ -67,9 +67,7 @@ describe "Sending events" do
     it "reconnects and resend the payload" do
       # We guarantee at least once, 
       # duplicates can happen in this scenario.
-      batch_payload.each do |event|
-        input.receive(event)
-      end
+      batch_payload.each { |event| output.receive(event) }
 
       try(10) { expect(queue.size).to be >= batch_size }
       expect(queue.map { |e| e["line"] }).to include(*batch_payload.map(&:to_s))
