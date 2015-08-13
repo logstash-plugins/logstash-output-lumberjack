@@ -1,5 +1,5 @@
 # encoding: utf-8
-require "logstash/outputs/Lumberjack"
+require "logstash/outputs/lumberjack"
 require "logstash/event"
 require "logstash/devutils/rspec/spec_helper"
 require "lumberjack/server"
@@ -10,14 +10,10 @@ require "fileutils"
 describe "Sending events" do
   let(:batch_size) { Flores::Random.integer(20..100) }
   let(:batch_payload) do
-    batch = []
-    batch_size.times do |n|
-      batch << LogStash::Event.new({ "message" => "foobar #{n}" })
-    end
-    batch
+    batch_size.times.collect { |n| LogStash::Event.new({ "message" => "foobar #{n}" }) }
   end
 
-  let(:number_of_crash) { Flores::Random.integer(1..3) }
+  let(:number_of_crash) { Flores::Random.integer(1..10) }
   let(:certificate) { Flores::PKI.generate }
   let(:certificate_file_crt) { Stud::Temporary.pathname }
   let(:certificate_file_key) { Stud::Temporary.pathname }
@@ -30,7 +26,7 @@ describe "Sending events" do
       "hosts" => [host],
       "port" => port,
       "ssl_certificate" => certificate_file_crt,
-      "flush_size" => 10#batch_size # flush at the end of the payload
+      "flush_size" => batch_size
     }
   }
   let(:input) { LogStash::Outputs::Lumberjack.new(client_options) }
@@ -49,11 +45,7 @@ describe "Sending events" do
       @server = Thread.new do
         begin
           server.run do |data|
-            crashed_count += 1
-
-            # make the client crash, forcing a retransmit.
-            # send his payload.
-            if crashed_count < number_of_crash && Random.rand >= 0.5
+            if crashed_count < number_of_crash
               crashed_count += 1
               raise "crashed"
             end
@@ -61,7 +53,6 @@ describe "Sending events" do
             queue << data
           end
         rescue
-          puts "CRASHED ONCEEEEE"
         end
       end
 
@@ -80,9 +71,7 @@ describe "Sending events" do
         input.receive(event)
       end
 
-      sleep(3) # backoff a bit, mocking the socket would fix this kind of issues?
-
-      expect(queue.size).to be >= batch_size
+      try(10) { expect(queue.size).to be >= batch_size }
       expect(queue.map { |e| e["line"] }).to include(*batch_payload.map(&:to_s))
     end
   end
