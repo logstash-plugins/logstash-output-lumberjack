@@ -29,7 +29,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'logstash-devutils'
   s.add_development_dependency "logstash-output-lumberjack"
   s.add_development_dependency "logstash-codec-plain"
-  s.add_development_dependency "stud"
   s.add_development_dependency "flores"
 end
 
