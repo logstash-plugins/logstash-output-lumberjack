@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   # Gem dependencies
   s.add_runtime_dependency "logstash-core", '>= 1.4.0', '< 2.0.0'
 
-  s.add_runtime_dependency 'jls-lumberjack', ['>=0.0.23']
+  s.add_runtime_dependency 'jls-lumberjack', ['>=0.0.24']
   s.add_runtime_dependency "stud"
 
   s.add_development_dependency 'logstash-devutils'
