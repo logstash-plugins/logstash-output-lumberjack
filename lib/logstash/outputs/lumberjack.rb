@@ -58,10 +58,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   public
   def receive(event)
     return unless output?(event)
-    if event == LogStash::SHUTDOWN
-      finished
-      return
-    end # LogStash::SHUTDOWN
+    return if event == LogStash::SHUTDOWN
     @codec.encode(event)
   end # def receive
 
