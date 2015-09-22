@@ -65,7 +65,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
     @codec.encode(event)
   end # def receive
 
-  def flush(events, teardown = false)
+  def flush(events, close = false)
     begin
       @logger.info("Sending events to lumberjack", :size => events.size)
       @client.write(events)
