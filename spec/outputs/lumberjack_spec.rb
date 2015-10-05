@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "logstash/outputs/lumberjack"
+require "logstash/errors"
 require "logstash/event"
 require "logstash/devutils/rspec/spec_helper"
 require "lumberjack/server"
@@ -20,7 +21,6 @@ describe "Sending events" do
   let(:port) { Flores::Random.integer(1024..65535) }
   let(:host) { "127.0.0.1" }
   let(:queue) { [] }
-
   let(:client_options) {
     {
       "hosts" => [host],
@@ -29,19 +29,32 @@ describe "Sending events" do
       "flush_size" => batch_size
     }
   }
+
   let(:output) { LogStash::Outputs::Lumberjack.new(client_options) }
+
+  let(:server) { 
+    Lumberjack::Server.new(:port => port,
+                           :address => host,
+                           :ssl_certificate => certificate_file_crt,
+                           :ssl_key => certificate_file_key)
+
+  }
+
+
+  before do
+    File.open(certificate_file_crt, "a") { |f| f.write(certificate.first) }
+    File.open(certificate_file_key, "a") { |f| f.write(certificate.last) }
+  end
+
+  after do
+    FileUtils.rm_rf(certificate_file_crt)
+    FileUtils.rm_rf(certificate_file_key)
+  end
 
   context "when the server closes the connection" do
     before do
-      File.open(certificate_file_crt, "a") { |f| f.write(certificate.first) }
-      File.open(certificate_file_key, "a") { |f| f.write(certificate.last) }
-
-      server = Lumberjack::Server.new(:port => port,
-                                      :address => host,
-                                      :ssl_certificate => certificate_file_crt,
-                                      :ssl_key => certificate_file_key)
-
       crashed_count = 0
+
       @server = Thread.new do
         begin
           server.run do |data|
@@ -59,11 +72,6 @@ describe "Sending events" do
       output.register
     end
 
-    after do
-      FileUtils.rm_rf(certificate_file_crt)
-      FileUtils.rm_rf(certificate_file_key)
-    end
-
     it "reconnects and resend the payload" do
       # We guarantee at least once, 
       # duplicates can happen in this scenario.
@@ -71,6 +79,28 @@ describe "Sending events" do
 
       try(10) { expect(queue.size).to be >= batch_size }
       expect(queue.map { |e| e["line"] }).to include(*batch_payload.map(&:to_s))
+    end
+  end
+
+  context "when shutting down" do
+    let(:queue) { [] }
+    let(:event) { LogStash::Event.new("line" => "Hello") }
+    let(:number_of_events) { 50 }
+
+    before do 
+      @server = Thread.new do
+        server.run do |data|
+          queue << data
+        end
+      end
+
+      output.register
+    end
+
+    it "flushes the events in the buffer" do
+      number_of_events.times { output.receive(event) }
+      output.close
+      expect(queue.size).to eq(number_of_events)
     end
   end
 end

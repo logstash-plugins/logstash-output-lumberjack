@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "logstash/outputs/base"
+require "logstash/errors"
 require "stud/buffer"
 require "thread"
 
@@ -57,7 +58,6 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
 
   public
   def receive(event)
-    
     return if event == LogStash::SHUTDOWN
     @codec.encode(event)
   end # def receive
@@ -72,6 +72,10 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
       connect
       retry
     end # begin
+  end
+
+  def close
+    buffer_flush(:force => true) 
   end
   
   private 
