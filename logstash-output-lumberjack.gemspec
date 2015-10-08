@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
 
 
   # Gem dependencies
-  s.add_runtime_dependency "logstash-core", "~> 2.0.0.snapshot"
+  s.add_runtime_dependency "logstash-core", ">= 2.0.0.snapshot", "< 3.0.0"
 
   s.add_runtime_dependency 'jls-lumberjack', ['>=0.0.24']
   s.add_runtime_dependency "stud"
