@@ -20,9 +20,9 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
 
   # window size
   config :window_size, :validate => :number, :deprecated => "Use `flush_size`", :require => false
-  
-  # To make efficient calls to the lumberjack output we are buffering events locally. 
-  # if the number of events exceed the number the declared `flush_size` we will 
+
+  # To make efficient calls to the lumberjack output we are buffering events locally.
+  # if the number of events exceed the number the declared `flush_size` we will
   # send them to the logstash server.
   config :flush_size, :validate => :number, :default => 1024
 
@@ -75,25 +75,25 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   end
 
   def close
-    buffer_flush(:force => true) 
+    buffer_flush(:force => true)
   end
-  
-  private 
+
+  private
   def max_items
     @window_size || @flush_size
   end
 
   def connect
     require 'resolv'
-    @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port, 
+    @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port,
         :ssl_certificate => @ssl_certificate, :window_size => @window_size)
     begin
       ips = []
       @hosts.each { |host| ips += Resolv.getaddresses host }
-      @client = Lumberjack::Client.new(:addresses => ips.uniq, :port => @port, 
+      @client = Lumberjack::Client.new(:addresses => ips.uniq, :port => @port,
         :ssl_certificate => @ssl_certificate, :window_size => @window_size)
     rescue Exception => e
-      @logger.error("All hosts unavailable, sleeping", :hosts => ips.uniq, :e => e, 
+      @logger.error("All hosts unavailable, sleeping", :hosts => ips.uniq, :e => e,
         :backtrace => e.backtrace)
       sleep(10)
       retry
