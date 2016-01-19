@@ -17,7 +17,10 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
 
   # ssl certificate to use
   config :ssl_certificate, :validate => :path, :required => true
-
+  
+  # ssl CA certificate file to use
+  config :ssl_ca_file, :validate => :path, :required => false
+  
   # window size
   config :window_size, :validate => :number, :deprecated => "Use `flush_size`", :require => false
 
@@ -86,12 +89,12 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   def connect
     require 'resolv'
     @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port,
-        :ssl_certificate => @ssl_certificate, :window_size => @window_size)
+        :ssl_certificate => @ssl_certificate, :ssl_ca_file => @ssl_ca_file, :window_size => @window_size)
     begin
       ips = []
       @hosts.each { |host| ips += Resolv.getaddresses host }
       @client = Lumberjack::Client.new(:addresses => ips.uniq, :port => @port,
-        :ssl_certificate => @ssl_certificate, :window_size => @window_size)
+        :ssl_certificate => @ssl_certificate, :ssl_ca_file => @ssl_ca_file, :window_size => @window_size)
     rescue Exception => e
       @logger.error("All hosts unavailable, sleeping", :hosts => ips.uniq, :e => e,
         :backtrace => e.backtrace)
