@@ -18,9 +18,6 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   # ssl certificate to use
   config :ssl_certificate, :validate => :path, :required => true
 
-  # window size
-  config :window_size, :validate => :number, :deprecated => "Use `flush_size`", :require => false
-
   # To make efficient calls to the lumberjack output we are buffering events locally.
   # if the number of events exceed the number the declared `flush_size` we will
   # send them to the logstash server.
@@ -44,7 +41,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
     require 'lumberjack/client'
 
     buffer_initialize(
-      :max_items => max_items,
+      :max_items => @flush_size,
       :max_interval => @idle_flush_time,
       :logger => @logger
     )
@@ -79,19 +76,15 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   end
 
   private
-  def max_items
-    @window_size || @flush_size
-  end
-
   def connect
     require 'resolv'
     @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port,
-        :ssl_certificate => @ssl_certificate, :window_size => @window_size)
+        :ssl_certificate => @ssl_certificate, :flush_size => @flush_size)
     begin
       ips = []
       @hosts.each { |host| ips += Resolv.getaddresses host }
       @client = Lumberjack::Client.new(:addresses => ips.uniq, :port => @port,
-        :ssl_certificate => @ssl_certificate, :window_size => @window_size)
+        :ssl_certificate => @ssl_certificate, :flush_size => @flush_size)
     rescue Exception => e
       @logger.error("All hosts unavailable, sleeping", :hosts => ips.uniq, :e => e,
         :backtrace => e.backtrace)
