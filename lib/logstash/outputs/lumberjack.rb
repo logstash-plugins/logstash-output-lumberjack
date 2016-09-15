@@ -61,7 +61,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
 
   def flush(events, close = false)
     begin
-      @logger.info("Sending events to lumberjack", :size => events.size)
+      @logger.debug? && @logger.debug("Sending events to lumberjack", :size => events.size)
       @client.write(events)
     rescue Exception => e
       @logger.error("Client write error, trying connect", :e => e, :backtrace => e.backtrace)
@@ -78,7 +78,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   private
   def connect
     require 'resolv'
-    @logger.info("Connecting to lumberjack server.", :addresses => @hosts, :port => @port,
+    @logger.debug("Connecting to lumberjack server.", :addresses => @hosts, :port => @port,
         :ssl_certificate => @ssl_certificate, :flush_size => @flush_size)
     begin
       ips = []
