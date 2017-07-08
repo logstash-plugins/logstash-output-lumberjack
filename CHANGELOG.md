@@ -1,3 +1,9 @@
+## 3.1.4
+  - Docs: Add plugin description
+
+## 3.1.3
+  - Docs: Bump patch level for doc build
+
 ## 3.1.2
   - Fix logging
 
