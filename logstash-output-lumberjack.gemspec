@@ -1,9 +1,9 @@
 Gem::Specification.new do |s|
 
   s.name            = 'logstash-output-lumberjack'
-  s.version         = '3.1.5'
+  s.version         = '3.1.6'
   s.licenses        = ['Apache License (2.0)']
-  s.summary         = "Send events using the lumberjack protocol"
+  s.summary         = "Sends events using the `lumberjack` protocol"
   s.description     = "This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program"
   s.authors         = ["Elastic"]
   s.email           = 'info@elastic.co'
