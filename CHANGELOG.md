@@ -1,3 +1,6 @@
+## 3.1.8
+  - Fix: dropped usage of SHUTDOWN event deprecated since Logstash 5.0 [#31](https://github.com/logstash-plugins/logstash-output-lumberjack/pull/31)
+
 ## 3.1.7
   - Docs: Set the default_codec doc attribute.
 

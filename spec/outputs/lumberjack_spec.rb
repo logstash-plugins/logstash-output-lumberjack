@@ -1,8 +1,8 @@
 # encoding: utf-8
+require "logstash/devutils/rspec/spec_helper"
 require "logstash/outputs/lumberjack"
 require "logstash/errors"
 require "logstash/event"
-require "logstash/devutils/rspec/spec_helper"
 require "lumberjack/server"
 require "flores/pki"
 require "stud/temporary"
