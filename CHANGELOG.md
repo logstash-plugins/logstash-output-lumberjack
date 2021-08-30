@@ -1,3 +1,6 @@
+## 3.1.9
+  - Docs: specified the policity selection of host from `hosts` setting [32](https://github.com/logstash-plugins/logstash-output-lumberjack/pull/32)
+
 ## 3.1.8
   - Fix: dropped usage of SHUTDOWN event deprecated since Logstash 5.0 [#31](https://github.com/logstash-plugins/logstash-output-lumberjack/pull/31)
 

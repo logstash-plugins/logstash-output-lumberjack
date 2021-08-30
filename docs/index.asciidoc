@@ -61,7 +61,11 @@ send them to the logstash server.
   * Value type is <<array,array>>
   * There is no default value for this setting.
 
-list of addresses lumberjack can send to
+List of addresses lumberjack can send to. When the plugin needs to connect to the remote
+peer, it randomly selects one of the hosts. 
+
+When the plugin is registered, it opens a connection to one of the hosts.
+If the plugin detects a connection error, it selects a different host from the list and opens a new connection.
 
 [id="plugins-{type}s-{plugin}-idle_flush_time"]
 ===== `idle_flush_time` 
