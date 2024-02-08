@@ -81,7 +81,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
         :ssl_certificate => @ssl_certificate, :flush_size => @flush_size)
     begin
       ips = []
-      @hosts.each { |host| ips += Resolv.getaddresses host }
+      @hosts.shuffle.each { |host| ips += Resolv.getaddresses host }
       @client = Lumberjack::Client.new(:addresses => ips.uniq, :port => @port,
         :ssl_certificate => @ssl_certificate, :flush_size => @flush_size)
     rescue Exception => e
