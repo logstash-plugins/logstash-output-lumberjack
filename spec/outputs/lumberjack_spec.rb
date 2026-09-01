@@ -9,6 +9,19 @@ require "stud/temporary"
 require "fileutils"
 
 describe "Sending events" do
+  around(:each) do |example|
+    prev_abort = Thread.abort_on_exception
+    prev_report = Thread.report_on_exception
+    Thread.abort_on_exception = false
+    Thread.report_on_exception = false
+    begin
+      example.run
+    ensure
+      Thread.abort_on_exception = prev_abort
+      Thread.report_on_exception = prev_report
+    end
+  end
+
   let(:batch_size) { Flores::Random.integer(20..100) }
   let(:batch_payload) do
     batch_size.times.collect { |n| LogStash::Event.new({ "message" => "foobar #{n}" }) }
